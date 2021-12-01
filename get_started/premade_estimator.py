@@ -10,7 +10,6 @@ import sys
 from dataclasses import dataclass
 
 import pandas as pd
-import tensorflow as tf
 from absl import app
 from tensorflow import keras
 
@@ -120,5 +119,5 @@ def main():
 
 if __name__ == '__main__':
     ctx = parse_args()
-    tf_settings()
+    tf = tf_settings()
     main()

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 from absl import app
 
 from utils import tf_settings, logger
@@ -75,5 +74,5 @@ def main():
 
 if __name__ == '__main__':
     ctx = parse_args()
-    tf_settings()
+    tf = tf_settings()
     main()

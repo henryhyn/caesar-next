@@ -1,5 +1,3 @@
-import tensorflow as tf
-
 from utils import tf_settings, logger
 
 
@@ -26,5 +24,5 @@ def main():
 
 
 if __name__ == '__main__':
-    tf_settings()
+    tf = tf_settings()
     main()

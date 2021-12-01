@@ -20,7 +20,6 @@ def getLogger(env, port):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     logging.getLogger('nacos').setLevel(logging.WARNING)
-    logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)

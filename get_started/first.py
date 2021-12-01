@@ -1,5 +1,6 @@
-import tensorflow as tf
+from utils import tf_settings
 
+tf = tf_settings(silent=True)
 tf.enable_eager_execution()
 
 a = tf.add(1, 2)
