@@ -14,8 +14,7 @@ class GroupWriteTimedRotatingFileHandler(TimedRotatingFileHandler):
 def getLogger(env, port):
     log_dir = '/data/applogs/ut-caesar'
 
-    fmt = logging.Formatter(
-        '%(asctime)s [%(threadName)s] %(levelname)s (%(filename)s:%(lineno)d) - %(message)s')
+    fmt = logging.Formatter('%(asctime)s [%(threadName)s] %(levelname)s (%(filename)s:%(lineno)d) - %(message)s')
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)

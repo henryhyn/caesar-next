@@ -2,4 +2,8 @@ numpy==1.16.6
 pandas==1.2.5
 tensorflow==1.14.0
 matplotlib==3.4.3
-sklearn==0.0
+emoji==1.6.1
+pangu==4.0.6.1
+keras==2.2.4
+keras-contrib @ git+https://www.github.com/keras-team/keras-contrib.git
+scikit-learn==1.0.1

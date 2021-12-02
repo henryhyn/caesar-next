@@ -16,6 +16,7 @@ from tensorflow import keras
 from utils import logger, tf_settings
 
 CSV_COLUMN_NAMES = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'Species']
+CSV_TYPES = [[0.0], [0.0], [0.0], [0.0], [0]]
 SPECIES = ['Setosa', 'Versicolor', 'Virginica']
 
 
@@ -59,13 +60,28 @@ def load_data(y_name=CSV_COLUMN_NAMES[-1]):
     return (train_x, train_y), (test_x, test_y)
 
 
-def input_fn(inputs, num_epochs, shuffle, batch_size):
+def input_fn(inputs, epochs, shuffle, batch_size):
     dataset = tf.data.Dataset.from_tensor_slices(inputs)
+    return _next_batch(dataset, epochs, shuffle, batch_size)
+
+
+def csv_input_fn(file_path, epochs, shuffle, batch_size):
+    dataset = tf.data.TextLineDataset(file_path).skip(1).map(_parse_line)
+    return _next_batch(dataset, epochs, shuffle, batch_size)
+
+
+def _next_batch(dataset, epochs, shuffle, batch_size):
     if shuffle:
-        dataset = dataset.shuffle(1000)
-    dataset = dataset.repeat(num_epochs)
+        dataset = dataset.shuffle(1024)
+    dataset = dataset.repeat(epochs)
     dataset = dataset.batch(batch_size)
     return dataset
+
+
+def _parse_line(line):
+    fields = tf.io.decode_csv(line, record_defaults=CSV_TYPES)
+    features = dict(zip(CSV_COLUMN_NAMES, fields))
+    return features, features.pop(CSV_COLUMN_NAMES[-1])
 
 
 def build_feature_columns():
@@ -78,20 +94,23 @@ def build_model():
     return tf.estimator.DNNClassifier(
         feature_columns=feature_columns,
         hidden_units=hidden_units,
-        n_classes=3,
+        n_classes=len(SPECIES),
         model_dir=ctx.model_dir)
 
 
 def main():
     logger.info(ctx)
     shutil.rmtree(ctx.model_dir, ignore_errors=True)
-    (train_x, train_y), (test_x, test_y) = load_data()
+    # (train_x, train_y), (test_x, test_y) = load_data()
+    train_path, test_path = maybe_download()
 
     def train_input_fn():
-        return input_fn((train_x, train_y), None, True, ctx.batch_size)
+        # return input_fn((train_x, train_y), None, True, ctx.batch_size)
+        return csv_input_fn(train_path, None, True, ctx.batch_size)
 
     def eval_input_fn():
-        return input_fn((test_x, test_y), 1, False, ctx.batch_size)
+        # return input_fn((test_x, test_y), 1, False, ctx.batch_size)
+        return csv_input_fn(test_path, 1, False, ctx.batch_size)
 
     model = build_model()
     model.train(input_fn=train_input_fn, steps=ctx.train_steps)
