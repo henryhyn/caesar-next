@@ -91,11 +91,14 @@ def build_feature_columns():
 def build_model():
     feature_columns = build_feature_columns()
     hidden_units = [10, 10]
-    return tf.estimator.DNNClassifier(
+    model = tf.estimator.DNNClassifier(
         feature_columns=feature_columns,
         hidden_units=hidden_units,
         n_classes=len(SPECIES),
         model_dir=ctx.model_dir)
+    feature_spec = tf.feature_column.make_parse_example_spec(feature_columns)
+    receiver_fn = tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)
+    return model, receiver_fn
 
 
 def main():
@@ -112,10 +115,10 @@ def main():
         # return input_fn((test_x, test_y), 1, False, ctx.batch_size)
         return csv_input_fn(test_path, 1, False, ctx.batch_size)
 
-    model = build_model()
+    model, receiver_fn = build_model()
     model.train(input_fn=train_input_fn, steps=ctx.train_steps)
     eval_result = model.evaluate(input_fn=eval_input_fn)
-    logger.info('Test set accuracy: {accuracy:0.3f}'.format(**eval_result))
+    logger.info('Test set accuracy: {accuracy:.2%}'.format(**eval_result))
 
     expected = ['Setosa', 'Versicolor', 'Virginica']
     predict_x = {
@@ -129,11 +132,13 @@ def main():
         return input_fn(predict_x, 1, False, ctx.batch_size)
 
     predictions = model.predict(input_fn=predict_input_fn)
-    template = 'Prediction is "{}" ({:.2f}%), expected "{}"'
+    template = 'Prediction is "{}" ({:.2%}), expected "{}"'
     for predict, expect in zip(predictions, expected):
         class_id = predict['class_ids'][0]
         probability = predict['probabilities'][class_id]
-        logger.info(template.format(SPECIES[class_id], 100 * probability, expect))
+        logger.info(template.format(SPECIES[class_id], probability, expect))
+
+    model.export_saved_model(export_dir_base=ctx.model_dir, serving_input_receiver_fn=receiver_fn)
 
 
 if __name__ == '__main__':
